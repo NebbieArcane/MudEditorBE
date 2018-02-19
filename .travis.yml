@@ -2,4 +2,4 @@ language: php
 dist: xenial
 php:
 - '7.1'
-script: ./build.sh  
+script: php composer.phar test  
