@@ -9,6 +9,7 @@ use Slim\Views\Twig;
 
 $app->get('/editor', function () {
     header("Content-type: text/html");
+    echo dirname(__DIR__).'/public/editor/index.html';
     readfile(dirname(__DIR__).'/public/editor/index.html');
     die();
     // Sample log message
