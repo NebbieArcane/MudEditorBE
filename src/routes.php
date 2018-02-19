@@ -10,6 +10,7 @@ use Slim\Views\Twig;
 $app->get('/editor', function () {
     header("Content-type: text/html");
     readfile(dirname(__DIR__).'/public/editor/index.html');
+    die();
     // Sample log message
 });
     $app->get('/test[/{name}]', function (Logger $logger, Twig $renderer, Response $response,string $name=null) {
