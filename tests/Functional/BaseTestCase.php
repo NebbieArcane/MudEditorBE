@@ -6,6 +6,7 @@ use Slim\App;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Http\Environment;
+use DI\ContainerBuilder;
 
 /**
  * This is an example class that shows how you could set up a method that
@@ -51,14 +52,19 @@ class BaseTestCase extends \PHPUnit_Framework_TestCase
         // Set up a response object
         $response = new Response();
 
-        // Use the application settings
-        $settings = require __DIR__ . '/../../src/settings.php';
-
-        // Instantiate the application
-        $app = new App($settings);
-
-        // Set up dependencies
-        require __DIR__ . '/../../src/dependencies.php';
+        $app = new class() extends \DI\Bridge\Slim\App {
+            protected function configureContainer(ContainerBuilder $builder)
+            {
+                // Instantiate the app
+                /**
+                 *
+                 * @var ContainerBuilder $builder
+                 */
+                $builder->addDefinitions(__DIR__ . '/../../src/settings.php');
+                $builder->addDefinitions(__DIR__ . '/../../src/dependencies.php');
+            }
+        };
+        
 
         // Register middleware
         if ($this->withMiddleware) {
