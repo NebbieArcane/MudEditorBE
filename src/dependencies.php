@@ -1,19 +1,30 @@
 <?php
+use Psr\Container\ContainerInterface;
+use Slim\Views\Twig;
+use Monolog\Logger;
+
 // DIC configuration
 
-$container = $app->getContainer();
+return [
+    Twig::class => function (ContainerInterface $c) {
+        $conf=$c->get('conf')['twig'];
+        $twig = new Twig($conf['template_path'], [
+            'cache' => $conf['cache_path']
+        ]);
+        
+        $twig->addExtension(new \Slim\Views\TwigExtension(
+            $c->get('router'),
+            $c->get('request')->getUri()
+            ));
+        
+        return $twig;
+    },
+    Logger::class => function (ContainerInterface $c) {
+        $conf = $c->get('conf')['logger'];
+        $logger = new Logger($conf['name']);
+        $logger->pushProcessor(new Monolog\Processor\UidProcessor());
+        $logger->pushHandler(new Monolog\Handler\StreamHandler($conf['path'], $conf['level']));
+        return $logger;
+    }
+];
 
-// view renderer
-$container['renderer'] = function ($c) {
-    $settings = $c->get('settings')['renderer'];
-    return new Slim\Views\PhpRenderer($settings['template_path']);
-};
-
-// monolog
-$container['logger'] = function ($c) {
-    $settings = $c->get('settings')['logger'];
-    $logger = new Monolog\Logger($settings['name']);
-    $logger->pushProcessor(new Monolog\Processor\UidProcessor());
-    $logger->pushHandler(new Monolog\Handler\StreamHandler($settings['path'], $settings['level']));
-    return $logger;
-};

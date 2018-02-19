@@ -8,17 +8,26 @@ if (PHP_SAPI == 'cli-server') {
         return false;
     }
 }
-
 require __DIR__ . '/../vendor/autoload.php';
+use DI\ContainerBuilder;
 
 session_start();
 
-// Instantiate the app
-$settings = require __DIR__ . '/../src/settings.php';
-$app = new \Slim\App($settings);
 
-// Set up dependencies
-require __DIR__ . '/../src/dependencies.php';
+//$app = new \Slim\App($settings);
+$app = new class() extends \DI\Bridge\Slim\App {
+    protected function configureContainer(ContainerBuilder $builder)
+    {
+        // Instantiate the app
+        /**
+         * 
+         * @var ContainerBuilder $builder
+         */
+        $builder->addDefinitions(__DIR__ . '/../src/settings.php');
+        $builder->addDefinitions(__DIR__ . '/../src/dependencies.php');
+    }
+};
+
 
 // Register middleware
 require __DIR__ . '/../src/middleware.php';

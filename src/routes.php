@@ -1,14 +1,14 @@
 <?php
 
+use Monolog\Logger;
 use Slim\Http\Request;
 use Slim\Http\Response;
+use Slim\Views\Twig;
 
 // Routes
 
-$app->get('/[{name}]', function (Request $request, Response $response, array $args) {
+$app->get('/editor', function () {
+    header("Content-type: text/html");
+    readfile(dirname(__DIR__).'/public/editor/index.html');
     // Sample log message
-    $this->logger->info("Slim-Skeleton '/' route");
-
-    // Render index view
-    return $this->renderer->render($response, 'index.phtml', $args);
 });
