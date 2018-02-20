@@ -14,8 +14,8 @@ return [
             'path' => isset($_ENV['docker']) ? 'php://stdout' : __DIR__ . '/../logs/app.log',
             'level' => \Monolog\Logger::DEBUG,
         ],
-         'aree' => [
+        'aree' => [
              'git'=>is_dir('/home/nebbie')?"/home/nebbie/Aree/master/":"/home/giovanni/git/Nebbie/Aree/",
-         ]
+        ]
     ],
 ];

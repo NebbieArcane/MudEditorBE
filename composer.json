@@ -35,7 +35,12 @@
 		"process-timeout" : 0
 	},
 	"scripts" : {
-		"start" : "php -S localhost:8080 -t public index.php",
+		"start" : "php -S localhost:8081 -t public index.php",
 		"test" : "phpunit"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"app\\" : "src/"
+		}
 	}
 }
