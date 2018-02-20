@@ -34,6 +34,6 @@ class HomepageTest extends BaseTestCase
     {
         $response = $this->runApp('POST', '/', ['test']);
 
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(405, $response->getStatusCode());
     }
 }
