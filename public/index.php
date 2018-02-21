@@ -9,6 +9,11 @@ if (PHP_SAPI == 'cli-server') {
     }
 }
 require __DIR__ . '/../vendor/autoload.php';
+function print_nice($o) {
+    echo '<pre>';
+    print_r($o);
+    echo '</pre>';
+}
 use DI\ContainerBuilder;
 
 session_start();

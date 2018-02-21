@@ -1,9 +1,9 @@
 <?php
-use Psr\Container\ContainerInterface;
-use Slim\Views\Twig;
 use Monolog\Logger;
-use app\controllers\api;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
+use Slim\Views\Twig;
+use app\services\Conf;
 
 
 
@@ -30,7 +30,7 @@ return [
         $logger->pushHandler(new Monolog\Handler\StreamHandler($conf['path'], $conf['level']));
         return $logger;
     },
-    api::class => DI\object()
+    Conf::class => DI\object()
     ->constructorParameter('conf', DI\get('conf')),
 ];
 
