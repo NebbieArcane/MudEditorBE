@@ -92,7 +92,7 @@ class Zone
             else {
                 $match=explode(' ',$command);
                 $code=$match[0];
-                $command=['_debug'=>$line,'code'=>$code,'comment'=>$comment,'if'=>(bool) $match[1],'vnum'=>intval($match[2])];
+                $command=['_debug'=>$line,'code'=>$code,'comment'=>$comment,'ifFlag'=>(bool) $match[1],'vnum'=>intval($match[2])];
             }
             switch($code) {
                 case 'M':
