@@ -9,6 +9,8 @@ if (PHP_SAPI == 'cli-server') {
     }
 }
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../src/startDb.php';
+
 function print_nice($o) {
     echo '<pre>';
     print_r($o);
@@ -42,3 +44,4 @@ require __DIR__ . '/../src/routes.php';
 
 // Run app
 $app->run();
+
