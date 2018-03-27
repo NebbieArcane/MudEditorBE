@@ -8,15 +8,25 @@
 
 namespace app\controllers;
 
-use app\models\ZoneList as zoneListModel;
+use app\models\ZoneList as ZoneListModel;
 
 class ZoneListController {
-    public static function createZone(array $fields) {
+
+    function createZone(array $fields) {
         $zone = zoneListModel::create($fields);
+        return $zone;
     }
 
-    public static function getAll(){
-        $model = new zoneListModel();
-        return $model->findAll();
+    static function getAll(){
+        return ZoneListModel::findAll();
     }
+
+    static function findOne(int $id) {
+        return ZoneListModel::findOne($id);
+    }
+
+    static function findByUserId(int $userId, $log) {
+        return ZoneListModel::findByUserId($userId, $log);
+    }
+
 }

@@ -14,9 +14,8 @@ use Illuminate\Database\Eloquent\Model;
 class Zone extends Model {
     protected $table = 'zones';
     protected $fillable = [
-        'id',
-        'userId',
         'vnum',
+        'zoneId',
         'name',
         'lifeSpan',
         'resetMode'
