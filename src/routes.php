@@ -16,6 +16,11 @@ $auth=function (Request $request,Response $response, $next) {
     return $next($request,$response);
 };
 
+/*
+http://mudbe/api/v1/dbzones
+http://mudbe/api/v1/dbzones/1/
+http://mudbe/api/v1/dbzones/puzzo/
+*/
 
 // Routes
 /**
@@ -27,8 +32,12 @@ $app->group('/api/v1/', function () {
     $this->put('zones[/{zone}[/rooms[{room}]]]',[Api::class,'write']);
     $this->post('zones[/{zone}[/rooms[{room}]]]',[Api::class,'create']);
     $this->delete('zones[/{zone}[/rooms[{room}]]]',[Api::class,'create']);
-    $this->get('dbzones[/{zoneId}]', [Api::class, 'dbRead']);
+
+    $this->get('dbzones[/{zone}]', [Api::class, 'dbRead']);
     $this->post('dbzones[/{zoneId}]', [Api::class, 'dbWrite']);
+
+
+
     $this->get('uid[/{uid}]', [Api::class, 'pippo']);
 });
 

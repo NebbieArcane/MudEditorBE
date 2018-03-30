@@ -48,12 +48,14 @@ class Api {
         }
     }
 
-    function dbRead(Response $response, $zoneId = null) {
+    function dbRead(Response $response, $zone = null) {
+        $controller = new ZoneListController();
+        $controller->setLog($this->logger);
 
-        if (empty($zoneId)) {
-            return $response->withJson(ZoneListController::getAll());
+        if (empty($zone)) {
+            return $response->withJson($controller->getZoneList());
         } else {
-            return$response->withJson(ZoneListController::findOne($zoneId));
+            return $response->withJson(ZoneListController::getZone($zone));
         }
     }
 
@@ -65,9 +67,12 @@ class Api {
             'zone' => null
         ];
         try {
+            $controller = new ZoneListController();
+            $controller->setLog($this->logger);
+
             $cl = $request->getHeader('Content-Length')[0];
             $params = json_decode($request->getBody()->read($cl), true);
-            $zone = ZoneListController::createZone($params);
+            $zone = $controller->createZone($params);
             $r['zone'] = $zone;
         } catch (\Exception $e) {
             $this->logger->info($e->getMessage());
@@ -78,9 +83,9 @@ class Api {
         return $response->withJson($r);
     }
 
-    function pippo(Response $response, $uid) {
+    /*function pippo(Response $response, $uid) {
         return $response->withJson(ZoneListController::findByUserId($uid, $this->logger));
-    }
+    }*/
 
 }
 

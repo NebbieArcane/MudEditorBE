@@ -22,10 +22,11 @@ class Room extends Model {
         'sectorType',
         'exits',
         'objInRoom',
+        'mobInRoom',
         'specialId'
     ];
 
-    public function findAll(){
+    public function findAll() {
         return $this->get()->toArray();
     }
 }

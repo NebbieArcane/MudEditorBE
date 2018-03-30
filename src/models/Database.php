@@ -7,6 +7,7 @@
  */
 
 namespace app\models;
+
 use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Database {
@@ -15,10 +16,7 @@ class Database {
         $capsule = new Capsule();
         $capsule->addConnection([
             'driver' => DBDRIVER,
-            'host' => DBHOST,
             'database' => DBNAME,
-            'username' => DBUSER,
-            'password' => DBPASS,
             'charset' => 'latin1',
             'collation' => 'latin1_swedish_ci',
             'prefix' => ''

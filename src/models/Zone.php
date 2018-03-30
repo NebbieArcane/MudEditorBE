@@ -12,7 +12,13 @@ namespace app\models;
 use Illuminate\Database\Eloquent\Model;
 
 class Zone extends Model {
+    /**
+     * @var string
+     */
     protected $table = 'zones';
+    /**
+     * @var array
+     */
     protected $fillable = [
         'vnum',
         'zoneId',
@@ -21,7 +27,18 @@ class Zone extends Model {
         'resetMode'
     ];
 
-    public function findAll(){
-        return $this->get()->toArray();
+    /**
+     * @return Zone
+     */
+    static function findAll(){
+        return Zone::get()->toArray();
+    }
+
+    /**
+     * @param int $pk
+     * @return Zone
+     */
+    static function findOne(int $pk) {
+        return Zone::get($pk)->toArray();
     }
 }
