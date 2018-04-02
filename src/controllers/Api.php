@@ -4,7 +4,6 @@ namespace app\controllers;
 
 use app\services\Conf;
 use app\services\Zone;
-use Psr\Http\Message\RequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -48,6 +47,7 @@ class Api {
         }
     }
 
+    /*
     function dbRead(Response $response, $zone = null) {
         $controller = new ZoneListController();
         $controller->setLog($this->logger);
@@ -55,9 +55,11 @@ class Api {
         if (empty($zone)) {
             return $response->withJson($controller->getZoneList());
         } else {
-            return $response->withJson(ZoneListController::getZone($zone));
+            return $response->withJson($controller->getZone($zone));
         }
     }
+
+
 
     function dbWrite(Response $response, RequestInterface $request) {
         $r = [
@@ -82,6 +84,7 @@ class Api {
         }
         return $response->withJson($r);
     }
+    */
 
     /*function pippo(Response $response, $uid) {
         return $response->withJson(ZoneListController::findByUserId($uid, $this->logger));
