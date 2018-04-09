@@ -23,7 +23,6 @@ class Api {
     }
 
     function describe(Request $request, Response $response) {
-        // return $response->withJson('{"kakka"}');
         $ref = new \ReflectionClass($this->zoneService);
         $methods = $ref->getMethods(\ReflectionMethod::IS_PUBLIC);
         /**
@@ -46,49 +45,5 @@ class Api {
             return $this->zoneService->zone($response, $zone);
         }
     }
-
-    /*
-    function dbRead(Response $response, $zone = null) {
-        $controller = new ZoneListController();
-        $controller->setLog($this->logger);
-
-        if (empty($zone)) {
-            return $response->withJson($controller->getZoneList());
-        } else {
-            return $response->withJson($controller->getZone($zone));
-        }
-    }
-
-
-
-    function dbWrite(Response $response, RequestInterface $request) {
-        $r = [
-            'status' => 'OK',
-            'err_code' => 0,
-            'reason' => '',
-            'zone' => null
-        ];
-        try {
-            $controller = new ZoneListController();
-            $controller->setLog($this->logger);
-
-            $cl = $request->getHeader('Content-Length')[0];
-            $params = json_decode($request->getBody()->read($cl), true);
-            $zone = $controller->createZone($params);
-            $r['zone'] = $zone;
-        } catch (\Exception $e) {
-            $this->logger->info($e->getMessage());
-            $r['status'] = 'KO';
-            $r['err_code'] = $e->getCode();
-            $r['reason'] = $e->getMessage();
-        }
-        return $response->withJson($r);
-    }
-    */
-
-    /*function pippo(Response $response, $uid) {
-        return $response->withJson(ZoneListController::findByUserId($uid, $this->logger));
-    }*/
-
 }
 

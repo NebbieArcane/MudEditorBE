@@ -32,6 +32,10 @@ class ZoneListController {
         $this->model->setLog($logger);
     }
 
+    /**
+     * @param int $id
+     * @return ZoneList
+     */
     function getZone(int $id) {
         return $this->model->get($id)->toArray();
     }
@@ -39,12 +43,18 @@ class ZoneListController {
     /**
      * @param Response $response
      * @param null $zone
+     * @param int $userId
      * @return mixed
      */
-    function getZoneList(Response $response, $zone = null) {
+    function getZoneList(Response $response, $zone = null, int $userId = null) {
         if (empty($zone)) {
             // all the list
-            return $response->withJson($this->model->get()->toArray());
+            if (empty($userId)) {
+                return $response->withJson($this->model->get()->toArray());
+            } else {
+                return $response->withJson($this->model::where('userId', '=', $userId)->toArray());
+            }
+
         } else {
             //@TODO: manage single zone
         }
@@ -53,7 +63,7 @@ class ZoneListController {
     /**
      * @param Response $response
      * @param RequestInterface $request
-     * @return array
+     * @return mixed
      */
     function createZone(Response $response, RequestInterface $request) {
 
@@ -73,12 +83,13 @@ class ZoneListController {
             $cl = $request->getHeader('Content-Length')[0];
             $fields = json_decode($request->getBody()->read($cl), true);
 
-            $zone = $this->model->findByPath($fields['path']);
+            $haveZone = $this->model->findByPath($fields['path']);
 
-            if ($zone === null) {
-                $zone = new ZoneList();
+
+            if ($haveZone) {
+                throw new ZoneListException("Path [{$fields['path']}] already used", 1000);
             } else {
-                throw new ZoneListException("Path [{$fields['path']}] already used fon zone [{$zone->name}]", 1000);
+                $zone = new ZoneList();
             }
 
             $this->log->debug('Can save new zone');

@@ -17,6 +17,7 @@ use Throwable;
  *
  * Error map:
  * 1000: path already exist
+ * 1500: error fetching data
  */
 class ZoneListException extends \Exception {
 

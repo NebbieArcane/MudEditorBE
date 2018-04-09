@@ -41,14 +41,18 @@ class ZoneList extends Model {
      * @return null
      * @throws ZoneListException
      */
-    function findByPath(string $path) {
-        $zone = null;
+    public function findByPath(string $path) {
+        $retVal = false;
         try {
-            $zone = ZoneList::where('path', $path)->findOrFail(1);
+            $zone = $this::where('path', $path)->get();
+            if ($zone->count() > 0) {
+                $this->log->debug('Fount [' . $zone->name . '] for path [' . $path . ']');
+                $retVal = true;
+            }
         } catch (\Exception $e) {
-            $this->log->debug("Path [$path] not found in DB");
+            $this->log->debug($e->getCode() . " " . $e->getMessage());
+            throw new ZoneListException('Error fetching zone from Database', 1500);
         }
-        $this->log->debug("Returning zone [$zone]");
-        return $zone;
+        return $retVal;
     }
 }

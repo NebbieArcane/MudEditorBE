@@ -15,7 +15,7 @@ return [
             'level' => \Monolog\Logger::DEBUG,
         ],
         'aree' => [
-            'git' => is_dir('/home/nebbie') ? "/home/nebbie/Aree/master/" : "/home/giovanni/git/Nebbie/Aree/",
+            'git' => is_dir('/data/mud/') ? "/data/mud/Aree/" : "/data/mud/lib2/",
         ],
         'cors' => [
             'origin' => '*',
