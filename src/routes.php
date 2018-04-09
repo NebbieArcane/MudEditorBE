@@ -22,10 +22,10 @@ $auth=function (Request $request,Response $response,$next) {
  */
 $app->group('/api/v1/', function () {
     $this->get('describe',[Api::class,'describe']);
-    $this->get('zones[/{zone}[/rooms[{room}]]]',[Api::class,'read']);
-    $this->put('zones[/{zone}[/rooms[{room}]]]',[Api::class,'write']);
-    $this->post('zones[/{zone}[/rooms[{room}]]]',[Api::class,'create']);
-    $this->delete('zones[/{zone}[/rooms[{room}]]]',[Api::class,'create']);
+    $this->get('zones[/{zone}[/{type}[/{id}]]]',[Api::class,'read']);
+    $this->put('zones[/{zone}[/{type}[/{id}]]]',[Api::class,'write']);
+    $this->post('zones[/{zone}[/{type}[/{id}]]]',[Api::class,'create']);
+    $this->delete('zones[/{zone}[/{type}[/{id}]]]',[Api::class,'remove']);
 }
 )->add($auth);
 
