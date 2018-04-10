@@ -85,7 +85,10 @@ class Zone {
         $answer['lifespan'] = (int)$parsed[4];
         $answer['resetmode'] = self::resetTypes[$parsed[5]];
         $commands = [];
+<<<<<<< HEAD
         $match = [];
+=======
+>>>>>>> newzone-mysql
         foreach (preg_split('/\v+/', $parsed[6]) as $line) {
             list($command, $comment) = explode('*', $line);
             $command = trim($command);
@@ -95,7 +98,11 @@ class Zone {
             } else {
                 $match = explode(' ', $command);
                 $code = $match[0];
+<<<<<<< HEAD
                 $command = ['_debug' => $line, 'code' => $code, 'comment' => $comment, 'ifFlag' => (bool)$match[1], 'vnum' => (int)$match[2]];
+=======
+                $command = ['_debug' => $line, 'code' => $code, 'comment' => $comment, 'ifFlag' => (bool)$match[1], 'vnum' => intval($match[2])];
+>>>>>>> newzone-mysql
             }
             switch ($code) {
                 case 'M':
