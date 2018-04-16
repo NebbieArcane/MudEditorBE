@@ -11,15 +11,17 @@ use Psr\Log\LoggerInterface;
  */
 class Parser {
 
-
     /**
-     *
      * @var string $gitPath
      * @var LoggerInterface $logger
+     * @var Constants $const
      */
     protected $gitPath, $logger, $const;
 
     /**
+     * Parser constructor.
+     * @param Conf $conf
+     * @param LoggerInterface $logger
      */
     public function __construct(Conf $conf, LoggerInterface $logger) {
         $this->gitPath = $conf->aree['git'];
@@ -279,6 +281,7 @@ class Parser {
     }
 
     public function parseMobs($zone) {
+        $result = [];
         $fname = $this->gitPath . "src/$zone/$zone.mob";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
@@ -286,10 +289,108 @@ class Parser {
             $body = file_get_contents($fname);
             preg_match_all($re, $body, $mobs, PREG_SET_ORDER);
             foreach ($mobs as $mob) {
-                $this->logger->debug(print_r($mob, true));
+                $mob['_debug'] = $mob[0];
+                unset($mob[0]);
+                $mob['id'] = (int)$mob[1];
+                unset($mob[1]);
+                $mob['alias_list'] = $mob[2];
+                unset($mob[2]);
+                $mob['short_description'] = $mob[3];
+                unset($mob[3]);
+                $mob['long_description'] = $mob[4];
+                unset($mob[4]);
+                $mob['detailed_description'] = $mob[5];
+                unset($mob[5]);
+                $mob['action_bitvector'] = $this->parseActBv($mob[6]);
+                unset($mob[6]);
+                $mob['affected_bitvector'] = $this->parseAffectBitvector($mob[7]);
+                unset($mob[7]);
+                $mob['align'] = (int)$mob[8];
+                unset($mob[8]);
+                $mob['type'] = $mob[9];
+                unset($mob[9]);
+                $result[] = $mob;
             }
         }
-        return [1 => 'a'];
+        return $result;
+    }
+
+    protected function parseActBv(string $act) {
+        $result = [
+            '_debug' => $act,
+            'ACT_SPEC' => false,
+            'ACT_SENTINEL' => false,
+            'ACT_SCAVENGER' => false,
+            'ACT_ISNPC' => false,
+            'ACT_NICE_THIEF' => false,
+            'ACT_AGGRESSIVE' => false,
+            'ACT_STAY_ZONE' => false,
+            'ACT_WIMPY' => false,
+            'ACT_ANNOYING' => false,
+            'ACT_HATEFUL' => false,
+            'ACT_AFRAID' => false,
+            'ACT_IMMORTAL' => false,
+            'ACT_HUNTING' => false,
+            'ACT_DEADLY' => false,
+            'ACT_POLYSELF' => false,
+            'ACT_META_AGG' => false,
+            'ACT_GUARDIAN' => false,
+            'ACT_ILLUSION' => false,
+            'ACT_HUGE' => false,
+            'ACT_SCRIPT' => false,
+            'ACT_GREET' => false,
+            'ACT_MAGIC_USER' => false,
+            'ACT_WARRIOR' => false,
+            'ACT_CLERIC' => false,
+            'ACT_THIEF' => false,
+            'ACT_DRUID' => false,
+            'ACT_MONK' => false,
+            'ACT_BARBARIAN' => false,
+            'ACT_PALADIN' => false,
+            'ACT_RANGER' => false,
+            'ACT_PSI' => false,
+            'ACT_ARCHER' => false,
+        ];
+
+        $acts = explode('|', $act);
+        foreach ($acts as $a) {
+            $result[$this->const::actFlagsReverse[$a]] = true;
+        }
+        return $result;
+    }
+
+    protected function parseAffectBitvector(string $aff) {
+        $result = [
+            '_debug' => $aff,
+            'AFF_BLIND' => false,
+            'AFF_INVISIBLE' => false,
+            'AFF_DETECT_ALIGN' => false,
+            'AFF_DETECT_INVIS' => false,
+            'AFF_DETECT_MAGIC' => false,
+            'AFF_SENSE_LIFE' => false,
+            'AFF_WATERWALK' => false,
+            'AFF_SANCTUARY' => false,
+            'AFF_GROUP' => false,
+            'AFF_CURSE' => false,
+            'AFF_INFRAVISION' => false,
+            'AFF_POISON' => false,
+            'AFF_PROTECT_EVIL' => false,
+            'AFF_PROTECT_GOOD' => false,
+            'AFF_SLEEP' => false,
+            'AFF_NOTRACK' => false,
+            'AFF_UNUSED16' => false,
+            'AFF_UNUSED17' => false,
+            'AFF_SNEAK' => false,
+            'AFF_HIDE' => false,
+            'AFF_UNUSED20' => false,
+            'AFF_CHARM' => false,
+        ];
+
+        $affs = explode('|', $aff);
+        foreach ($affs as $a) {
+            $result[$this->const::affectionFlagReverse[$a]] = true;
+        }
+        return $result;
     }
 }
 
