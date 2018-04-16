@@ -30,6 +30,11 @@ http://mudbe/api/v1/dbzones/puzzo/
 $app->group('/api/v1/', function () {
     $this->get('describe', [Api::class, 'describe']);
     $this->get('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'read']);
+
+    $this->get('rooms/{zone}[/{room}]', [Api::class, 'listRooms']);
+
+    $this->get('mobs/{zone}[/{mob}]', [Api::class, 'listMobs']);
+
     $this->put('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'write']);
     $this->post('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);
     $this->delete('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);
