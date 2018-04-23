@@ -1,179 +1,30 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: enricomoretti
+ * Date: 20/04/18
+ * Time: 09:53
+ */
 
 namespace app\services;
 
-use Psr\Log\LoggerInterface;
 
-/**
- *
- * @author giovanni
- *
- */
 class Parser {
-
     /**
-     * @var string $gitPath
-     * @var LoggerInterface $logger
-     * @var Constants $const
+     * @var Constants
      */
-    protected $gitPath, $logger, $const;
+    protected $const, $logger;
 
-    /**
-     * Parser constructor.
-     * @param Conf $conf
-     * @param LoggerInterface $logger
-     */
-    public function __construct(Conf $conf, LoggerInterface $logger) {
-        $this->gitPath = $conf->aree['git'];
-        $this->logger = $logger;
+    public function __construct($logger) {
         $this->const = new Constants();
+        $this->logger = $logger;
     }
 
-    public function parseIndex() {
-        $fname = $this->gitPath . 'aree.index';
-        $result = $this->getCachedData($fname);
-        if (empty($result)) {
-            $list = file($fname);
-            $this->logger->info("Reading area list from {$fname}");
-            foreach ($list as $zona) {
-                list($start, $end, $path, $name) = explode(':', $zona);
-                $result[] = ['start' => (int)$start, 'end' => (int)$end, 'path' => trim(basename($path)), 'name' => trim($name)];
-            }
-            $this->cacheData($fname, $result);
-        }
-        return $result;
-    }
-
-    protected function getCachedData($fname) {
-        $cachefile = $fname . '.json';
-        if (file_exists($cachefile)) {
-
-            $cached = json_decode(file_get_contents($cachefile), true);
-
-            if ($cached['md5'] = md5_file($fname)) {
-                unset($cached['md5']);
-                return $cached;
-            } else {
-                unlink($cachefile);
-            }
-
-            /**
-             *
-             * Scazza con il FE
-             *
-             * $cached = json_decode(file_get_contents($cachefile));
-             * if ($cached->md5 = md5_file($fname)) {
-             * unset($cached->md5);
-             * $this->logger->debug(var_export($cached, true));
-             * return $cached;
-             * } else {
-             * unlink($cachefile);
-             * }
-             **/
-
-        }
-        return false;
-    }
-
-    protected function cacheData($fname, $data) {
-        if (\is_array($data)) {
-            $data['md5'] = md5_file($fname);
-            file_put_contents($fname . '.json', json_encode($data, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT));
-        } else {
-            $data->md5 = md5_file($fname);
-            file_put_contents($fname . '.json', json_encode($data, JSON_NUMERIC_CHECK | JSON_PRETTY_PRINT));
-        }
-    }
-
-    public function parseZone($zone) {
-        $fname = $this->gitPath . "src/$zone/$zone.zon";
-        $answer = $this->getCachedData($fname);
-        if (empty($answer)) {
-            $data = @file_get_contents($fname);
-            if ($data) {
-                preg_match('/#(\d+)\s*([^~]+)~\s*(\d+)\s*(\d+)\s*(\d+)\s*(.*)/s', $data, $parsed);
-            }
-            $answer['vnum'] = (int)$parsed[1];
-            $answer['name'] = $parsed[2];
-            $answer['end'] = (int)$parsed[3];
-            $answer['lifespan'] = (int)$parsed[4];
-            $answer['resetmode'] = $this->const::resetTypes[$parsed[5]];
-            $commands = [];
-            foreach (preg_split('/\v+/', $parsed[6]) as $line) {
-                list($command, $comment) = explode('*', $line);
-                $command = trim($command);
-                if (empty($command)) {
-                    $code = '*';
-                    $command = ['_debug' => $line, 'comment' => $comment, 'code' => $code];
-                } else {
-                    $match = explode(' ', $command);
-                    $code = array_shift($match);
-                    $ifFlag = array_shift($match);
-                    // Now index in $match is consistent with arg[n] in db.cpp
-                    $arg1 = (int)$match[1];
-                    $arg2 = (int)$match[2];
-                    $arg3 = (int)$match[3];
-                    $arg4 = (int)$match[4];
-                    $arg5 = (int)$match[5];
-                    $command = ['_debug' => $line, 'code' => $code, 'comment' => $comment, 'if' => $ifFlag, 'vnum' => $arg1];
-                    // Index 1 is always a vnum
-                    switch ($code) {
-                        case 'C':
-                        case 'M':
-                        case 'O':
-                            $command['worldCap'] = $arg2;
-                            if ($code == 'C') {
-                                $command['act'] = $this->parseFlagString($match[3]);
-                            } else {
-                                $command['room'] = $arg3;
-                            }
-                            $command['roomCap'] = $arg4;
-                            break;
-                        case 'E':
-                            $command['worldCap'] = $arg2;
-                            $command['slot'] = $arg3;
-                            $command['slotDesc'] = $this->const::eqSlots[(int)$arg3];
-                            break;
-                        case 'G':
-                            $command['worldCap'] = $arg2;
-                            break;
-                        case 'R':
-                            $command['notImplemented'] = true;
-                            $command['room'] = $arg2;
-                            $command['roomCap'] = $arg3;
-                            break;
-                        case 'P':
-                            $command['worldCap'] = $arg2;
-                            $command['into'] = $arg3;
-                            break;
-                        case 'D':
-                            $command['exit'] = $this->const::exitDir[$arg2];
-                            $command['state'] = $this->const::exitStates[$arg3];
-                            break;
-                        case 'Z':
-                            unset($command['vnum']);
-                            break;
-                        case 'F':
-                            unset($command['vnum']);
-                            $command['fearType'] = $this->const::fearTypes[$arg1];
-                            $command['fearValue'] = $arg2;
-                            break;
-                        case 'H':
-                            unset($command['vnum']);
-                            $command['hateType'] = $this->const::fearTypes[$arg1];
-                            $command['hateValue'] = $arg2;
-                            break;
-                    }
-                }
-                $commands[] = $command;
-            }
-            $answer['actions'] = $commands;
-            $this->cacheData($fname, $answer);
-        }
-        return $answer;
-    }
-
-    protected function parseFlagString($riga) {
+    /**
+     * @param $riga
+     * @return array
+     */
+    protected function parseFlagString($riga): array {
         $flags = [];
         foreach (explode('|', $riga) as $digits) {
             if (!empty($digits)) {
@@ -193,51 +44,13 @@ class Parser {
             }
         }
         return $flags;
-
     }
 
-    public function parseRooms($zone) {
-        $fname = $this->gitPath . "src/$zone/$zone.wld";
-        $answer = $this->getCachedData($fname);
-        if (empty($answer)) {
-            //preg_match_all('/#(\d+)\v+([^~]*)~\v([^~]*)~\v\d+\s+([\d|]+)\s+(\d+)(.*)\vS\s*\v/', file_get_contents($fname),$rooms);
-            $body = file_get_contents($fname);
-            $exit = '\vD(\d)([^~]*?)~([^~]*?)~\v([-\d]+) ([-\d]+) ([-\d]+) ([-\d]+)';
-            $extra = '\v(E)([^~]*?)~([^~]*?)~';
-            preg_match_all('/#([-\d]+)\v+([^~]+)~\v([^~]+)~\v([-\d]+)\s+([-\d|]+)\s+([-\d+])(.*?)\vS\v/s', $body, $rooms, PREG_SET_ORDER);
-            foreach ($rooms as $room) {
-                $room['_debug'] = $room[0];
-                unset($room['0']);
-                $room['id'] = (int)$room[1];
-                unset($room[1]);
-                $room['name'] = $room[2];
-                unset($room[2]);
-                $room['description'] = $room[3];
-                unset($room[3]);
-                $room['reserved'] = (int)$room[4];
-                unset($room[4]);
-                $room['_debugFlags'] = $room[5];
-                $room['flags'] = $this->parseFlagString($room[5]);
-                unset($room[5]);
-                $room['_debugSector'] = $room[6];
-                $room['sectorType'] = $this->const::sectorTypes[(int)$room[6]];
-                unset($room[6]);
-                preg_match_all("/$exit/s", $room[7], $exits, PREG_SET_ORDER);
-                preg_match_all("/$extra/s", $room[7], $extras, PREG_SET_ORDER);
-                unset($room[7]);
-                $room['exits'] = $this->parseExits($exits);
-
-                $room['extras'] = $this->parseExtras($extras);
-                //Exits and extra are repeatable, they need to be parsed alone
-                $answer[$room['id']] = $room;
-            }
-            $this->cacheData($fname, $answer);
-        }
-        return $answer;
-
-    }
-
-    protected function parseExits($exits) {
+    /**
+     * @param $exits
+     * @return array
+     */
+    protected function parseExits($exits): array {
         $result = [];
         //array_walk($exits, 'trim');
         foreach ($exits as $exit) {
@@ -264,7 +77,7 @@ class Parser {
      * @param $extras
      * @return array
      */
-    protected function parseExtras($extras) {
+    protected function parseExtras($extras): array {
         $result = [];
         foreach ($extras as $extra) {
             $extra['_debug'] = $extra[0];
@@ -280,42 +93,11 @@ class Parser {
         return $result;
     }
 
-    public function parseMobs($zone) {
-        $result = [];
-        $fname = $this->gitPath . "src/$zone/$zone.mob";
-        $answer = $this->getCachedData($fname);
-        if (empty($answer)) {
-            $re = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v([-\d|]+)\s([-\d|]+)\s([-\d|]+)\s(.*?)\v+([-\d]+)\s([-\d]+)\s([-\d]+)\s([-\d]+)\s([\d]d[\d]\+[\d]+)\v([-\d]+)\s([\d]+)\s([\d]+)\s([\d]+)\v([\d]+)\s([\d]+)\s([\d]+)\s([\d]+)\s([\d|]+)\s([\d]+)/s';
-            $body = file_get_contents($fname);
-            preg_match_all($re, $body, $mobs, PREG_SET_ORDER);
-            foreach ($mobs as $mob) {
-                $mob['_debug'] = $mob[0];
-                unset($mob[0]);
-                $mob['id'] = (int)$mob[1];
-                unset($mob[1]);
-                $mob['alias_list'] = $mob[2];
-                unset($mob[2]);
-                $mob['short_description'] = $mob[3];
-                unset($mob[3]);
-                $mob['long_description'] = $mob[4];
-                unset($mob[4]);
-                $mob['detailed_description'] = $mob[5];
-                unset($mob[5]);
-                $mob['action_bitvector'] = $this->parseActBv($mob[6]);
-                unset($mob[6]);
-                $mob['affected_bitvector'] = $this->parseAffectBitvector($mob[7]);
-                unset($mob[7]);
-                $mob['align'] = (int)$mob[8];
-                unset($mob[8]);
-                $mob['type'] = $mob[9];
-                unset($mob[9]);
-                $result[] = $mob;
-            }
-        }
-        return $result;
-    }
-
-    protected function parseActBv(string $act) {
+    /**
+     * @param string $act
+     * @return array
+     */
+    protected function parseActBitVector(string $act): array {
         $result = [
             '_debug' => $act,
             'ACT_SPEC' => false,
@@ -359,7 +141,11 @@ class Parser {
         return $result;
     }
 
-    protected function parseAffectBitvector(string $aff) {
+    /**
+     * @param string $aff
+     * @return array
+     */
+    protected function parseAffectBitvector(string $aff): array {
         $result = [
             '_debug' => $aff,
             'AFF_BLIND' => false,
@@ -392,5 +178,97 @@ class Parser {
         }
         return $result;
     }
-}
 
+    /**
+     * @param string $rawParams
+     * @param array $mob
+     */
+    protected function parseTypeAMob(string $rawParams, array &$mob) {
+        $typeA = '/([\d]+)\v(.+)\v(.+)\v(.+)/';
+        preg_match_all($typeA, $rawParams, $a, PREG_SET_ORDER);
+        $mob['num_attack'] = (int)trim($a[0][1]);
+        $extra = "{$a[0][2]}\n{$a[0][3]}\n{$a[0][4]}\n#";
+        $this->parseMobExtra($extra, $mob);
+    }
+
+    /**
+     * @param string $rawParams
+     * @param array $mob
+     */
+    protected function parseMobExtra(string $rawParams, array &$mob) {
+        $typeN = '/([-\d]+)\s([-\d]+)\s([-\d]+)\s([-\d]+)\s([\d]d[\d]\+[\d]+)\v([-\d]+)\s([\d]+)\s([\d]+)\s([\d]+)\v([\d]+)\s([\d]+)\s([\d]+)\s([\d|]+)\s([\d|]+)\s([\d|]+)/';
+        preg_match_all($typeN, $rawParams, $n, PREG_SET_ORDER);
+
+        $mob['level'] = (int)$n[0][1];
+        $mob['thac0'] = (int)$n[0][2];
+        $mob['ac'] = (int)$n[0][3];
+        $mob['hp_bonus'] = (int)$n[0][4];
+        $mob['damage'] = $n[0][5];
+        if ((int)$n[0][6] < 0) {
+            $mob['gold_exp'] = true;
+            $mob['gold'] = (int)$n[0][7];
+        } else {
+            $mob['gold_exp'] = false;
+            $mob['gold'] = (int)$n[0][6];
+            $mob['exp_mod'] = (int)$n[0][7];
+        }
+        $mob['bonus_exp'] = (int)$n[0][8];
+        $mob['race'] = $this->const::races[(int)$n[0][9]];
+        $mob['load_position'] = $this->const::position[$n[0][10]];
+        $mob['default_position'] = $this->const::position[$n[0][11]];
+        if ($n[0][12] >= 4) {
+            $mob['sex'] = $this->const::sex[(int)$n[0][12] - 3];
+            $mob['resi'] = $this->parseImmunities($n[0][13]);
+            $mob['immu'] = $this->parseImmunities($n[0][14]);
+            $mob['susc'] = $this->parseImmunities($n[0][15]);
+        } else {
+            $mob['sex'] = $this->const::sex[(int)$n[0][12]];
+        }
+    }
+
+    /**
+     * @param string $resi
+     * @return array
+     */
+    protected function parseImmunities($aff) {
+        $result = [
+            'FIRE' => false,
+            'COLD' => false,
+            'ELEC' => false,
+            'ENERGY' => false,
+            'BLUNT' => false,
+            'PIERCE' => false,
+            'SLASH' => false,
+            'ACID' => false,
+            'POISON' => false,
+            'DRAIN' => false,
+            'SLEEP' => false,
+            'CHARM' => false,
+            'HOLD' => false,
+            'NONMAG' => false,
+            'PLUS1' => false,
+            'PLUS2' => false,
+            'PLUS3' => false,
+            'PLUS4' => false,
+        ];
+        $affs = explode('|', $aff);
+        foreach ($affs as $a) {
+            $result[$this->const::immunitiesReversed[$a]] = true;
+        }
+        return $result;
+    }
+
+    /**
+     * @param string $rawParams
+     * @param array $mob
+     */
+    protected function parseTypeLMob(string $rawParams, array &$mob) {
+        $typeL = '/([\d]+)\v(.+)\v(.+)\v(.+)\v(.*)\v(.*)\v(.*)/';
+        preg_match_all($typeL, $rawParams, $l, PREG_SET_ORDER);
+        $mob['num_attack'] = (int)trim($l[0][1]);
+        $extra = "{$l[0][2]}\n{$l[0][3]}\n{$l[0][4]}\n#";
+        $this->parseMobExtra($extra, $mob);
+        $mob['in_room_sound'] = $l[0][5];
+        $mob['next_room_sound'] = $l[0][7];
+    }
+}

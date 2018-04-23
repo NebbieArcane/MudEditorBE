@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use app\services\Conf;
-use app\services\Parser;
+use app\services\DataParser;
 use Psr\Log\LoggerInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -19,11 +19,11 @@ class Api {
      * @var \app\services\TypeInterface[] $subservice
      * @var Conf $conf
      * @var LoggerInterface $logger
-     * @var parser $parser ;
+     * @var DataParser $parser ;
      */
     private $subservice, $conf, $logger, $zoneService;
 
-    function __construct(Conf $conf, LoggerInterface $logger, Parser $parser) {
+    function __construct(Conf $conf, LoggerInterface $logger, DataParser $parser) {
         $this->conf = $conf;
         $this->logger = $logger;
         $this->parser = $parser;
