@@ -1,13 +1,12 @@
 <?php
 
-use Monolog\Logger;
+use app\controllers\Api;
+use app\controllers\ZoneListController;
+use DI\Bridge\Slim\App;
+use Psr\Log\LoggerInterface;
 use Slim\Http\Request;
 use Slim\Http\Response;
 use Slim\Views\Twig;
-use DI\Bridge\Slim\App;
-use app\controllers\Api;
-use Psr\Log\LoggerInterface;
-use \app\controllers\ZoneListController;
 
 
 $auth = function (Request $request, Response $response, $next) {
@@ -34,6 +33,8 @@ $app->group('/api/v1/', function () {
     $this->get('rooms/{zone}[/{room}]', [Api::class, 'listRooms']);
 
     $this->get('mobs/{zone}[/{mob}]', [Api::class, 'listMobs']);
+
+    $this->get('specs/{zone}', [Api::class, 'listSpecss']);
 
     $this->put('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'write']);
     $this->post('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);

@@ -239,11 +239,11 @@ class DataParser extends Parser {
         $fname = $this->gitPath . "src/$zone/$zone.mob";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
-            $re2 = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v([-\d|]+)\s([-\d|]+)\s([-\d|]+)\s(\w)(.+?(?=#))/s';
+            $re = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v([-\d|]+)\s([-\d|]+)\s([-\d|]+)\s(\w)(.+?(?=#))/s';
             $body = file_get_contents($fname);
             // Trick to not miss last mob in the file: add '#' at the end
             $body = "$body#";
-            preg_match_all($re2, $body, $mobs, PREG_SET_ORDER);
+            preg_match_all($re, $body, $mobs, PREG_SET_ORDER);
             foreach ($mobs as $mob) {
                 $mob['_debug'] = $mob[0];
                 unset($mob[0]);
@@ -284,6 +284,31 @@ class DataParser extends Parser {
         return $result;
     }
 
+    public function parseSpecs($zone): array {
+        $result = [];
+        $fname = $this->gitPath . "src/$zone/$zone.spe";
+        $answer = $this->getCachedData($fname);
+        if (empty($answer)) {
+            $re = '/(\w)\s(\d+)\s(\w+)(.*?(?=\v))/s';
+            $body = file_get_contents($fname);
+            preg_match_all($re, $body, $specs, PREG_SET_ORDER);
+            foreach ($specs as $spec) {
+                $spec['_debug'] = $spec[0];
+                unset($spec[0]);
+                $spec['type'] = $spec[1];
+                unset($spec[1]);
+                $spec['vnum'] = (int)$spec[2];
+                unset($spec[2]);
+                $spec['function'] = $spec[3];
+                unset($spec[3]);
+                $spec['extra'] = trim($spec[4]);
+                unset($spec[4]);
+                $result[] = $spec;
+            }
+            $this->cacheData($fname, $result);
+        }
+        return $result;
+    }
 
 }
 

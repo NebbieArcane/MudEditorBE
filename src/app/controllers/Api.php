@@ -69,5 +69,9 @@ class Api {
         }
         return $response->withJson($this->parser->parseIndex());
     }
+
+    public function listSpecss(Response $response, $zone) {
+        return $response->withJson($this->parser->parseSpecs($zone));
+    }
 }
 
