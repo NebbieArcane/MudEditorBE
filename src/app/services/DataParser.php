@@ -23,7 +23,7 @@ class DataParser extends Parser {
      */
     public function __construct(Conf $conf, LoggerInterface $logger) {
         $this->gitPath = $conf->aree['git'];
-        +parent::__construct($logger);
+        parent::__construct($logger);
     }
 
     /**
@@ -51,7 +51,6 @@ class DataParser extends Parser {
     protected function getCachedData(string $fname) {
         $cachefile = $fname . '.json';
         if (file_exists($cachefile)) {
-
             $cached = json_decode(file_get_contents($cachefile), true);
 
             if ($cached['md5'] = md5_file($fname)) {
@@ -60,7 +59,6 @@ class DataParser extends Parser {
             } else {
                 unlink($cachefile);
             }
-
             /**
              *
              * Scazza con il FE
@@ -74,7 +72,6 @@ class DataParser extends Parser {
              * unlink($cachefile);
              * }
              **/
-
         }
         return false;
     }
@@ -235,7 +232,6 @@ class DataParser extends Parser {
      * @return array
      */
     public function parseMobs($zone): array {
-        $result = [];
         $fname = $this->gitPath . "src/$zone/$zone.mob";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
@@ -277,15 +273,18 @@ class DataParser extends Parser {
                         break;
                 }
                 unset($mob[10]);
-                $result[] = $mob;
+                $answer[] = $mob;
             }
-            $this->cacheData($fname, $result);
+            $this->cacheData($fname, $answer);
         }
-        return $result;
+        return $answer;
     }
 
+    /**
+     * @param $zone
+     * @return array
+     */
     public function parseSpecs($zone): array {
-        $result = [];
         $fname = $this->gitPath . "src/$zone/$zone.spe";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
@@ -303,12 +302,44 @@ class DataParser extends Parser {
                 unset($spec[3]);
                 $spec['extra'] = trim($spec[4]);
                 unset($spec[4]);
-                $result[] = $spec;
+                $answer[] = $spec;
             }
-            $this->cacheData($fname, $result);
+            $this->cacheData($fname, $answer);
         }
-        return $result;
+        return $answer;
     }
+
+    public function parseObjects($zone): array {
+        $fname = $this->gitPath . "src/$zone/$zone.obj";
+        $answer = $this->getCachedData($fname);
+        if (empty($answer)) {
+            $re = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~(.*?~)\v(.+?(?=#))/s';
+            $body = file_get_contents($fname);
+            // Trick to not miss last mob in the file: add '#' at the end
+            $body = "$body#";
+            preg_match_all($re, $body, $objs, PREG_SET_ORDER);
+            foreach ($objs as $obj) {
+                $obj['_debug'] = $obj[0];
+                unset($obj[0]);
+                $obj['vnum'] = (int)$obj[1];
+                unset($obj[1]);
+                $obj['name'] = $this->tildeRework($obj[2]);
+                unset($obj[2]);
+                $obj['short_desc'] = $this->tildeRework($obj[3]);
+                unset($obj[3]);
+                $obj['long_desc'] = $this->tildeRework($obj[4]);
+                unset($obj[4]);
+                $obj['sound'] = $this->tildeRework($obj[5]);
+                unset($obj[5]);
+                $this->parseObjSecondBlock($obj[6], $obj);
+
+                $answer[] = $obj;
+            }
+            //$this->cacheData($fname, $answer);
+        }
+        return $answer;
+    }
+
 
 }
 

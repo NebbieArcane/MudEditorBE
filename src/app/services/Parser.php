@@ -10,14 +10,21 @@ namespace app\services;
 
 
 class Parser {
-    /**
-     * @var Constants
-     */
-    protected $const, $logger;
+    protected $const, $logger, $gitPath;
 
     public function __construct($logger) {
         $this->const = new Constants();
         $this->logger = $logger;
+    }
+
+    /**
+     * @param string $str
+     * @return string
+     */
+    protected function tildeRework(string $str): string {
+        $str = trim($str);
+        $str = str_ireplace('~', '', $str);
+        return $str;
     }
 
     /**
@@ -136,7 +143,7 @@ class Parser {
 
         $acts = explode('|', $act);
         foreach ($acts as $a) {
-            $result[$this->const::actFlagsReverse[$a]] = true;
+            $result[$this->const::actFlags[$a]] = true;
         }
         return $result;
     }
@@ -174,7 +181,7 @@ class Parser {
 
         $affs = explode('|', $aff);
         foreach ($affs as $a) {
-            $result[$this->const::affectionFlagReverse[$a]] = true;
+            $result[$this->const::affectionFlags[$a]] = true;
         }
         return $result;
     }
@@ -230,8 +237,9 @@ class Parser {
      * @param string $resi
      * @return array
      */
-    protected function parseImmunities($aff) {
+    protected function parseImmunities($aff): array {
         $result = [
+            '_debug' => $aff,
             'FIRE' => false,
             'COLD' => false,
             'ELEC' => false,
@@ -253,7 +261,7 @@ class Parser {
         ];
         $affs = explode('|', $aff);
         foreach ($affs as $a) {
-            $result[$this->const::immunitiesReversed[$a]] = true;
+            $result[$this->const::immunities[$a]] = true;
         }
         return $result;
     }
@@ -270,5 +278,92 @@ class Parser {
         $this->parseMobExtra($extra, $mob);
         $mob['in_room_sound'] = $l[0][5];
         $mob['next_room_sound'] = $l[0][7];
+    }
+
+    protected function parseObjSecondBlock(string $rawParams, array &$obj) {
+        $re = '/([-\d]+)\s([-\d|]+)\s([-\d|]+)\v([-\d]+)\s([-\d]+)\s([-\d]+)\s([-\d+])\v([-\d]+)\s([-\d]+)\s([-\d]+)/';
+        preg_match_all($re, $rawParams, $block, PREG_SET_ORDER);
+        //prendo gli extra, se ci sono
+        $extra = trim(preg_replace($re, '', $rawParams));
+        if (!empty($block)) {
+            $itemType = (int)$block[0][1];
+            $obj['item_type'] = $this->const::itemType[$itemType];
+            $obj['item_affect'] = $this->parseItemAffect($block[0][2]);
+            $obj['item_wear'] = $this->parseWearFlags($block[0][3]);
+        }
+
+
+    }
+
+    protected function parseItemAffect(string $affString): array {
+        $result = [
+            'ITEM_GLOW' => false,
+            'ITEM_HUM' => false,
+            'ITEM_METAL' => false,
+            'ITEM_MINERAL' => false,
+            'ITEM_ORGANIC' => false,
+            'ITEM_INVISIBLE' => false,
+            'ITEM_MAGIC' => false,
+            'ITEM_NODROP' => false,
+            'ITEM_BLESS' => false,
+            'ITEM_ANTI_GOOD' => false,
+            'ITEM_ANTI_EVIL' => false,
+            'ITEM_ANTI_NEUTRAL' => false,
+            'ITEM_ANTI_CLERIC' => false,
+            'ITEM_ANTI_MAGE' => false,
+            'ITEM_ANTI_THIEF' => false,
+            'ITEM_ANTI_FIGHTER' => false,
+            'ITEM_BRITTLE' => false,
+            'ITEM_RESISTANT' => false,
+            'ITEM_IMMUNE' => false,
+            'ITEM_ANTI_MEN' => false,
+            'ITEM_ANTI_WOMEN' => false,
+            'ITEM_ANTI_SUN' => false,
+            'ITEM_ANTI_BARBARIAN' => false,
+            'ITEM_ANTI_RANGER' => false,
+            'ITEM_ANTI_PALADIN' => false,
+            'ITEM_ANTI_PSI' => false,
+            'ITEM_ANTI_MONK' => false,
+            'ITEM_ANTI_DRUID' => false,
+            'ITEM_ONLY_CLASS' => false,
+            'ITEM_DIG' => false,
+            'ITEM_SCYTHE' => false,
+            'ITEM_ANTI_SORCERER' => false,
+        ];
+        $affs = explode('|', $affString);
+        foreach ($affs as $a) {
+            $result[$this->const::itemAffect[$a]] = true;
+        }
+        return $result;
+    }
+
+    protected function parseWearFlags(string $wearFlag): array {
+        $result = [
+            'ITEM_TAKE' => false,
+            'ITEM_WEAR_FINGER' => false,
+            'ITEM_WEAR_NECK' => false,
+            'ITEM_WEAR_BODY' => false,
+            'ITEM_WEAR_HEAD' => false,
+            'ITEM_WEAR_LEGS' => false,
+            'ITEM_WEAR_FEET' => false,
+            'ITEM_WEAR_HANDS' => false,
+            'ITEM_WEAR_ARMS' => false,
+            'ITEM_WEAR_SHIELD' => false,
+            'ITEM_WEAR_ABOUT' => false,
+            'ITEM_WEAR_WAISTE' => false,
+            'ITEM_WEAR_WRIST' => false,
+            'ITEM_WIELD' => false,
+            'ITEM_HOLD' => false,
+            'ITEM_THROW' => false,
+            'ITEM_LIGHT_SOURCE' => false,
+            'ITEM_WEAR_BACK' => false,
+            'ITEM_WEAR_EAR' => false,
+            'ITEM_WEAR_EYE' => false,
+        ];
+        $affs = explode('|', $wearFlag);
+        foreach ($affs as $a) {
+            $result[$this->const::wearFlag[$a]] = true;
+        }
+        return $result;
     }
 }

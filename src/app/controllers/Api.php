@@ -73,5 +73,9 @@ class Api {
     public function listSpecss(Response $response, $zone) {
         return $response->withJson($this->parser->parseSpecs($zone));
     }
+
+    public function listObjs(Response $response, $zone) {
+        return $response->withJson($this->parser->parseObjects($zone));
+    }
 }
 

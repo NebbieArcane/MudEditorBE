@@ -16,30 +16,20 @@ $auth = function (Request $request, Response $response, $next) {
     return $next($request, $response);
 };
 
-/*
-http://mudbe/api/v1/dbzones
-http://mudbe/api/v1/dbzones/1/
-http://mudbe/api/v1/dbzones/puzzo/
-*/
-
 // Routes
 /**
  * @var App $app
  */
 $app->group('/api/v1/', function () {
     $this->get('describe', [Api::class, 'describe']);
-    $this->get('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'read']);
-
     $this->get('rooms/{zone}[/{room}]', [Api::class, 'listRooms']);
-
     $this->get('mobs/{zone}[/{mob}]', [Api::class, 'listMobs']);
-
     $this->get('specs/{zone}', [Api::class, 'listSpecss']);
-
+    $this->get('objs/{zone}', [Api::class, 'listObjs']);
+    $this->get('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'read']);
     $this->put('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'write']);
     $this->post('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);
     $this->delete('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);
-
     $this->get('dbzones[/{zone}]', [ZoneListController::class, 'getZoneList']);
     $this->post('dbzones[/{zoneId}]', [ZoneListController::class, 'createZone']);
 
