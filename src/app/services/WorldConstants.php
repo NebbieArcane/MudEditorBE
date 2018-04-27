@@ -9,7 +9,7 @@
 namespace app\services;
 
 
-class WorldConstants {
+class WorldConstants extends MobConstants {
     /**
      * Zone CONSTANTS
      */

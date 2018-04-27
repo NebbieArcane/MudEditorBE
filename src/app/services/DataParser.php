@@ -332,10 +332,10 @@ class DataParser extends Parser {
                 $obj['sound'] = $this->tildeRework($obj[5]);
                 unset($obj[5]);
                 $this->parseObjSecondBlock($obj[6], $obj);
-
+                unset($obj[6]);
                 $answer[] = $obj;
             }
-            //$this->cacheData($fname, $answer);
+            $this->cacheData($fname, $answer);
         }
         return $answer;
     }

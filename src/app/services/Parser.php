@@ -105,45 +105,10 @@ class Parser {
      * @return array
      */
     protected function parseActBitVector(string $act): array {
-        $result = [
-            '_debug' => $act,
-            'ACT_SPEC' => false,
-            'ACT_SENTINEL' => false,
-            'ACT_SCAVENGER' => false,
-            'ACT_ISNPC' => false,
-            'ACT_NICE_THIEF' => false,
-            'ACT_AGGRESSIVE' => false,
-            'ACT_STAY_ZONE' => false,
-            'ACT_WIMPY' => false,
-            'ACT_ANNOYING' => false,
-            'ACT_HATEFUL' => false,
-            'ACT_AFRAID' => false,
-            'ACT_IMMORTAL' => false,
-            'ACT_HUNTING' => false,
-            'ACT_DEADLY' => false,
-            'ACT_POLYSELF' => false,
-            'ACT_META_AGG' => false,
-            'ACT_GUARDIAN' => false,
-            'ACT_ILLUSION' => false,
-            'ACT_HUGE' => false,
-            'ACT_SCRIPT' => false,
-            'ACT_GREET' => false,
-            'ACT_MAGIC_USER' => false,
-            'ACT_WARRIOR' => false,
-            'ACT_CLERIC' => false,
-            'ACT_THIEF' => false,
-            'ACT_DRUID' => false,
-            'ACT_MONK' => false,
-            'ACT_BARBARIAN' => false,
-            'ACT_PALADIN' => false,
-            'ACT_RANGER' => false,
-            'ACT_PSI' => false,
-            'ACT_ARCHER' => false,
-        ];
-
+        $result = [];
         $acts = explode('|', $act);
         foreach ($acts as $a) {
-            $result[$this->const::actFlags[$a]] = true;
+            $result[] = $this->const::actFlags[$a];
         }
         return $result;
     }
@@ -153,35 +118,11 @@ class Parser {
      * @return array
      */
     protected function parseAffectBitvector(string $aff): array {
-        $result = [
-            '_debug' => $aff,
-            'AFF_BLIND' => false,
-            'AFF_INVISIBLE' => false,
-            'AFF_DETECT_ALIGN' => false,
-            'AFF_DETECT_INVIS' => false,
-            'AFF_DETECT_MAGIC' => false,
-            'AFF_SENSE_LIFE' => false,
-            'AFF_WATERWALK' => false,
-            'AFF_SANCTUARY' => false,
-            'AFF_GROUP' => false,
-            'AFF_CURSE' => false,
-            'AFF_INFRAVISION' => false,
-            'AFF_POISON' => false,
-            'AFF_PROTECT_EVIL' => false,
-            'AFF_PROTECT_GOOD' => false,
-            'AFF_SLEEP' => false,
-            'AFF_NOTRACK' => false,
-            'AFF_UNUSED16' => false,
-            'AFF_UNUSED17' => false,
-            'AFF_SNEAK' => false,
-            'AFF_HIDE' => false,
-            'AFF_UNUSED20' => false,
-            'AFF_CHARM' => false,
-        ];
+        $result = [];
 
         $affs = explode('|', $aff);
         foreach ($affs as $a) {
-            $result[$this->const::affectionFlags[$a]] = true;
+            $result[] = $this->const::affectionFlags[$a];
         }
         return $result;
     }
@@ -238,30 +179,10 @@ class Parser {
      * @return array
      */
     protected function parseImmunities($aff): array {
-        $result = [
-            '_debug' => $aff,
-            'FIRE' => false,
-            'COLD' => false,
-            'ELEC' => false,
-            'ENERGY' => false,
-            'BLUNT' => false,
-            'PIERCE' => false,
-            'SLASH' => false,
-            'ACID' => false,
-            'POISON' => false,
-            'DRAIN' => false,
-            'SLEEP' => false,
-            'CHARM' => false,
-            'HOLD' => false,
-            'NONMAG' => false,
-            'PLUS1' => false,
-            'PLUS2' => false,
-            'PLUS3' => false,
-            'PLUS4' => false,
-        ];
+        $result = [];
         $affs = explode('|', $aff);
         foreach ($affs as $a) {
-            $result[$this->const::immunities[$a]] = true;
+            $result[] = $this->const::immunities[$a];
         }
         return $result;
     }
@@ -283,87 +204,99 @@ class Parser {
     protected function parseObjSecondBlock(string $rawParams, array &$obj) {
         $re = '/([-\d]+)\s([-\d|]+)\s([-\d|]+)\v([-\d]+)\s([-\d]+)\s([-\d]+)\s([-\d+])\v([-\d]+)\s([-\d]+)\s([-\d]+)/';
         preg_match_all($re, $rawParams, $block, PREG_SET_ORDER);
-        //prendo gli extra, se ci sono
-        $extra = trim(preg_replace($re, '', $rawParams));
+        $extra = preg_replace($re, '', $rawParams);
         if (!empty($block)) {
             $itemType = (int)$block[0][1];
+            $typeParser = 'type' . $block[0][1];
             $obj['item_type'] = $this->const::itemType[$itemType];
             $obj['item_affect'] = $this->parseItemAffect($block[0][2]);
             $obj['item_wear'] = $this->parseWearFlags($block[0][3]);
+            $objectValues = [
+                'val0' => $block[0][4],
+                'val1' => $block[0][5],
+                'val2' => $block[0][6],
+                'val3' => $block[0][7]
+            ];
+            $obj['obj_gen_values'] = $objectValues;
+            $obj['obj_weigth'] = $block[0][8];
+            $obj['obj_value'] = $block[0][9];
+            $obj['obj_rent_cost'] = $block[0][10];
+            $e = preg_split('/\v/', $extra, -1, PREG_SPLIT_NO_EMPTY);
+            $extraAffects = [];
+            $extraDescription = '';
+            if (!empty($e)) {
+                $lastEle = '';
+                $extraAffects = [];
+                $extraDescription = [];
+                $extraDescriptionString = '';
+                $extraDescCount = 0;
+                foreach ($e as $ele) {
+                    $ele = trim($ele);
+                    switch ($ele) {
+                        case 'E':
+                            $lastEle = 'E';
+                            $extraDescCount = 0;
+                            break;
+                        case 'A';
+                            $lastEle = 'A';
+                            break;
+                        default:
+                            switch ($lastEle) {
+                                case 'E':
+                                    switch ($extraDescCount) {
+                                        case 0:
+                                            $extraDescCount++;
+                                            $ele = str_ireplace('~', '', $ele);
+                                            $keywords = explode(' ', $ele);
+                                            $keywordList = [];
+                                            foreach ($keywords as $keyword) {
+                                                $keywordList[] = $keyword;
+                                            }
+                                            $extraDescription['keyword_list'] = $keywordList;
+                                            break;
+                                        default:
+                                            $extraDescCount++;
+                                            if (strlen($ele) == 1 && strcmp($ele, '~' == 0)) {
+                                                $extraDescription['description'] = trim($extraDescriptionString);
+                                                $extraDescriptionString = '';
+                                            } else {
+                                                $extraDescriptionString .= ' ' . $ele;
+                                            }
+                                            break;
+                                    }
+                                    break;
+                                case 'A':
+                                    $eleExtraValue = explode(' ', $ele);
+                                    $extraAffect = [
+                                        $this->const::objExtraAffects[$eleExtraValue[0]] => $eleExtraValue[1]];
+                                    $extraAffects[] = $extraAffect;
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+            $obj['extra_affects'] = $extraAffects;
+            $obj['extra_description'] = $extraDescription;
         }
-
-
     }
 
     protected function parseItemAffect(string $affString): array {
-        $result = [
-            'ITEM_GLOW' => false,
-            'ITEM_HUM' => false,
-            'ITEM_METAL' => false,
-            'ITEM_MINERAL' => false,
-            'ITEM_ORGANIC' => false,
-            'ITEM_INVISIBLE' => false,
-            'ITEM_MAGIC' => false,
-            'ITEM_NODROP' => false,
-            'ITEM_BLESS' => false,
-            'ITEM_ANTI_GOOD' => false,
-            'ITEM_ANTI_EVIL' => false,
-            'ITEM_ANTI_NEUTRAL' => false,
-            'ITEM_ANTI_CLERIC' => false,
-            'ITEM_ANTI_MAGE' => false,
-            'ITEM_ANTI_THIEF' => false,
-            'ITEM_ANTI_FIGHTER' => false,
-            'ITEM_BRITTLE' => false,
-            'ITEM_RESISTANT' => false,
-            'ITEM_IMMUNE' => false,
-            'ITEM_ANTI_MEN' => false,
-            'ITEM_ANTI_WOMEN' => false,
-            'ITEM_ANTI_SUN' => false,
-            'ITEM_ANTI_BARBARIAN' => false,
-            'ITEM_ANTI_RANGER' => false,
-            'ITEM_ANTI_PALADIN' => false,
-            'ITEM_ANTI_PSI' => false,
-            'ITEM_ANTI_MONK' => false,
-            'ITEM_ANTI_DRUID' => false,
-            'ITEM_ONLY_CLASS' => false,
-            'ITEM_DIG' => false,
-            'ITEM_SCYTHE' => false,
-            'ITEM_ANTI_SORCERER' => false,
-        ];
+        $result = [];
         $affs = explode('|', $affString);
         foreach ($affs as $a) {
-            $result[$this->const::itemAffect[$a]] = true;
+            $result[] = $this->const::itemAffect[$a];
         }
         return $result;
     }
 
     protected function parseWearFlags(string $wearFlag): array {
-        $result = [
-            'ITEM_TAKE' => false,
-            'ITEM_WEAR_FINGER' => false,
-            'ITEM_WEAR_NECK' => false,
-            'ITEM_WEAR_BODY' => false,
-            'ITEM_WEAR_HEAD' => false,
-            'ITEM_WEAR_LEGS' => false,
-            'ITEM_WEAR_FEET' => false,
-            'ITEM_WEAR_HANDS' => false,
-            'ITEM_WEAR_ARMS' => false,
-            'ITEM_WEAR_SHIELD' => false,
-            'ITEM_WEAR_ABOUT' => false,
-            'ITEM_WEAR_WAISTE' => false,
-            'ITEM_WEAR_WRIST' => false,
-            'ITEM_WIELD' => false,
-            'ITEM_HOLD' => false,
-            'ITEM_THROW' => false,
-            'ITEM_LIGHT_SOURCE' => false,
-            'ITEM_WEAR_BACK' => false,
-            'ITEM_WEAR_EAR' => false,
-            'ITEM_WEAR_EYE' => false,
-        ];
+        $result = [];
         $affs = explode('|', $wearFlag);
         foreach ($affs as $a) {
-            $result[$this->const::wearFlag[$a]] = true;
+            $result[] = $this->const::wearFlag[$a];
         }
         return $result;
     }
+
 }
