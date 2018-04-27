@@ -9,7 +9,7 @@
 namespace app\services;
 
 
-class MobConstants extends ItemConstants {
+class MobConstants extends WorldConstants {
     /**
      * MOB CONSTANTS
      */

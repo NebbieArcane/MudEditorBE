@@ -9,6 +9,6 @@
 namespace app\services;
 
 
-class Constants extends ItemConstants {
+class Constants extends MobConstants {
 
 }
