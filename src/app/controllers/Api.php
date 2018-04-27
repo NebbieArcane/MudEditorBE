@@ -77,5 +77,9 @@ class Api {
     public function listObjs(Response $response, $zone) {
         return $response->withJson($this->parser->parseObjects($zone));
     }
+
+    public function listShops(Response $response, $zone) {
+        return $response->withJson($this->parser->parseShops($zone));
+    }
 }
 

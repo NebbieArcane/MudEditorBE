@@ -69,11 +69,11 @@ class Parser {
             unset($exit[2]);
             $exit['keywords'] = explode(' ', $exit[3]);
             unset($exit[3]);
-            $exit['exitType'] = self::exitTypes[$exit[4]];
+            $exit['exitType'] = $this->const::exitTypes[$exit[4]];
             unset($exit[4]);
-            $exit['keyVnum'] = (int)self::exitTypes[$exit[5]];
+            $exit['keyVnum'] = (int)$this->const::exitTypes[$exit[5]];
             unset($exit[5]);
-            $exit['nextRoom'] = (int)self::exitTypes[$exit[6]];
+            $exit['nextRoom'] = (int)$this->const::exitTypes[$exit[6]];
             unset($exit[6]);
             $result[] = $exit;
         }
@@ -256,7 +256,7 @@ class Parser {
                                             break;
                                         default:
                                             $extraDescCount++;
-                                            if (strlen($ele) == 1 && strcmp($ele, '~' == 0)) {
+                                            if (strlen($ele) == 1 && strcmp($ele, '~') == 0) {
                                                 $extraDescription['description'] = trim($extraDescriptionString);
                                                 $extraDescriptionString = '';
                                             } else {
@@ -295,6 +295,24 @@ class Parser {
         $affs = explode('|', $wearFlag);
         foreach ($affs as $a) {
             $result[] = $this->const::wearFlag[$a];
+        }
+        return $result;
+    }
+
+    protected function parseShopBitvector(string $shopBv): array {
+        $result = [];
+        $sbv = explode('|', $shopBv);
+        foreach ($sbv as $bit) {
+            $result[] = $this->const::shopBV[$bit];
+        }
+        return $result;
+    }
+
+    protected function parseShopWithWho(string $ww): array {
+        $result = [];
+        $www = explode('|', $ww);
+        foreach ($www as $w) {
+            $result[] = $this->const::withWho[$w];
         }
         return $result;
     }

@@ -59,6 +59,12 @@ class WorldConstants extends ObjectConstants {
         5 => 'Down'
     ];
 
+    const exitTypes = [
+        0 => 'NoDoor',
+        1 => 'Door',
+        2 => 'PickproofDoor'
+    ];
+
     const exitStates = [
         0 => 'Open',
         1 => 'Closed',

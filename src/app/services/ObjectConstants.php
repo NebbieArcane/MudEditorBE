@@ -14,6 +14,7 @@ class ObjectConstants {
      * Items
      */
     const itemType = [
+        0 => 'NONE',
         1 => 'ITEM_LIGHT',
         2 => 'ITEM_SCROLL',
         3 => 'ITEM_WAND',
@@ -40,6 +41,7 @@ class ObjectConstants {
         24 => 'ITEM_BOARD',
         25 => 'ITEM_TREE',
         26 => 'ITEM_ROCK',
+        'NONE' => 0,
         'ITEM_LIGHT' => 1,
         'ITEM_SCROLL' => 2,
         'ITEM_WAND' => 3,

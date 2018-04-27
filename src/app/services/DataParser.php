@@ -98,7 +98,9 @@ class DataParser extends Parser {
         $fname = $this->gitPath . "src/$zone/$zone.zon";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
-            $data = @file_get_contents($fname);
+            if (file_exists($fname)) {
+                $data = @file_get_contents($fname);
+            }
             if ($data) {
                 preg_match('/#(\d+)\s*([^~]+)~\s*(\d+)\s*(\d+)\s*(\d+)\s*(.*)/s', $data, $parsed);
             }
@@ -190,8 +192,9 @@ class DataParser extends Parser {
         $fname = $this->gitPath . "src/$zone/$zone.wld";
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
-            //preg_match_all('/#(\d+)\v+([^~]*)~\v([^~]*)~\v\d+\s+([\d|]+)\s+(\d+)(.*)\vS\s*\v/', file_get_contents($fname),$rooms);
-            $body = file_get_contents($fname);
+            if (file_exists($fname)) {
+                $body = file_get_contents($fname);
+            }
             $exit = '\vD(\d)([^~]*?)~([^~]*?)~\v([-\d]+) ([-\d]+) ([-\d]+) ([-\d]+)';
             $extra = '\v(E)([^~]*?)~([^~]*?)~';
             preg_match_all('/#([-\d]+)\v+([^~]+)~\v([^~]+)~\v([-\d]+)\s+([-\d|]+)\s+([-\d+])(.*?)\vS\v/s', $body, $rooms, PREG_SET_ORDER);
@@ -236,7 +239,9 @@ class DataParser extends Parser {
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
             $re = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~\v([-\d|]+)\s([-\d|]+)\s([-\d|]+)\s(\w)(.+?(?=#))/s';
-            $body = file_get_contents($fname);
+            if (file_exists($fname)) {
+                $body = file_get_contents($fname);
+            }
             // Trick to not miss last mob in the file: add '#' at the end
             $body = "$body#";
             preg_match_all($re, $body, $mobs, PREG_SET_ORDER);
@@ -289,7 +294,9 @@ class DataParser extends Parser {
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
             $re = '/(\w)\s(\d+)\s(\w+)(.*?(?=\v))/s';
-            $body = file_get_contents($fname);
+            if (file_exists($fname)) {
+                $body = file_get_contents($fname);
+            }
             preg_match_all($re, $body, $specs, PREG_SET_ORDER);
             foreach ($specs as $spec) {
                 $spec['_debug'] = $spec[0];
@@ -314,7 +321,9 @@ class DataParser extends Parser {
         $answer = $this->getCachedData($fname);
         if (empty($answer)) {
             $re = '/#([-\d]+)\v+([^~]+)~\v+([^~]+)~\v+([^~]+)~(.*?~)\v(.+?(?=#))/s';
-            $body = file_get_contents($fname);
+            if (file_exists($fname)) {
+                $body = file_get_contents($fname);
+            }
             // Trick to not miss last mob in the file: add '#' at the end
             $body = "$body#";
             preg_match_all($re, $body, $objs, PREG_SET_ORDER);
@@ -340,6 +349,69 @@ class DataParser extends Parser {
         return $answer;
     }
 
-
+    public function parseShops($zone): array {
+        $fname = $this->gitPath . "src/$zone/$zone.shp";
+        $answer = $this->getCachedData($fname);
+        if (empty($answer)) {
+            $answer = [];
+            $re = '/#([-\d]+)~\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v[+-]?([\d]*[.]?[\d]+)\v[+-]?([\d]*[.]?[\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v(.*+)\v(.*+)\v(.*+)\v(.*+)\v(.*+)\v(.*+)\v(.*+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)\v([-\d]+)/';
+            if (file_exists($fname)) {
+                $body = file_get_contents($fname);
+            }
+            preg_match_all($re, $body, $shops, PREG_SET_ORDER);
+            foreach ((array)$shops as $shop) {
+                $shop['_debiug'] = $shop[0];
+                unset($shop[0]);
+                $shop['vnum'] = (int)$shop[1];
+                unset($shop[1]);
+                $sellItems = [
+                    (int)$shop[2],
+                    (int)$shop[3],
+                    (int)$shop[4],
+                    (int)$shop[5],
+                    (int)$shop[6],
+                ];
+                $shop['item_to_sell'] = $sellItems;
+                unset($shop[2], $shop[3], $shop[4], $shop[5], $shop[6]);
+                $shop['profit_when_selling'] = (int)$shop[7];
+                unset($shop[7]);
+                $shop['profit_when_buying'] = (int)$shop[8];
+                unset($shop[8]);
+                $buyTypes = [
+                    $this->const::itemType[$shop[9]],
+                    $this->const::itemType[$shop[10]],
+                    $this->const::itemType[$shop[11]],
+                    $this->const::itemType[$shop[12]],
+                    $this->const::itemType[$shop[13]],
+                ];
+                $shop['buy_type'] = $buyTypes;
+                unset($shop[9], $shop[10], $shop[11], $shop[12], $shop[13]);
+                $shop['msg_itemtobuy_not_exist'] = $this->tildeRework($shop[14]);
+                $shop['msg_itemtosell_not_exist'] = $this->tildeRework($shop[15]);
+                $shop['msg_shop_not_buy'] = $this->tildeRework($shop[16]);
+                $shop['msg_shop_cant_pay'] = $this->tildeRework($shop[17]);
+                $shop['msg_player_cant_pay'] = $this->tildeRework($shop[18]);
+                $shop['msg_buy_item'] = $this->tildeRework($shop[19]);
+                $shop['msg_sell_item'] = $this->tildeRework($shop[20]);
+                unset($shop[14], $shop[15], $shop[16], $shop[17], $shop[18], $shop[19], $shop[20]);
+                $shop['temper'] = $this->const::temper[$shop[21]];
+                unset($shop[21]);
+                $shop['shop_bitvector'] = $this->parseShopBitvector($shop[22]);
+                unset($shop[22]);
+                $shop['shopkeeper_vnum'] = (int)$shop[23];
+                unset($shop[23]);
+                $shop['with_who'] = $this->parseShopWithWho($shop[24]);
+                unset($shop[24]);
+                $shop['shop_room'] = (int)$shop[25];
+                $shop['first_open'] = $shop[26];
+                $shop['first_close'] = $shop[27];
+                $shop['second_open'] = $shop[28];
+                $shop['second_close'] = $shop[29];
+                unset($shop[25], $shop[26], $shop[27], $shop[28], $shop[29]);
+                $answer[] = $shop;
+            }
+        }
+        return $answer;
+    }
 }
 

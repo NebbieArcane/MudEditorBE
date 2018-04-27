@@ -26,6 +26,7 @@ $app->group('/api/v1/', function () {
     $this->get('mobs/{zone}[/{mob}]', [Api::class, 'listMobs']);
     $this->get('specs/{zone}', [Api::class, 'listSpecss']);
     $this->get('objs/{zone}', [Api::class, 'listObjs']);
+    $this->get('shops/{zone}', [Api::class, 'listShops']);
     $this->get('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'read']);
     $this->put('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'write']);
     $this->post('zones[/{zone}[/rooms[{room}]]]', [Api::class, 'create']);
